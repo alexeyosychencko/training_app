@@ -1,0 +1,118 @@
+{% extends 'training_app/base.html' %}
+
+{% block title %}Take Test - {{ test.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timer {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    .question {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    .choice {
+        margin: 10px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="timer alert alert-info">
+    Time Remaining: <span id="time-remaining">{{ time_remaining }}</span>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>{{ test.title }}</h3>
+        <p class="mb-0">{{ test.description }}</p>
+    </div>
+    <div class="card-body">
+        <form method="post" id="test-form">
+            {% csrf_token %}
+            {% for question in test.questions.all %}
+                <div class="question">
+                    <h5>Question {{ forloop.counter }}</h5>
+                    <p>{{ question.question_text }}</p>
+                    
+                    {% if question.question_type == 'multiple_choice' %}
+                        {% for choice in question.choices.all %}
+                            <div class="choice">
+                                <input type="radio" 
+                                       name="question_{{ question.id }}" 
+                                       value="{{ choice.id }}" 
+                                       class="form-check-input"
+                                       required>
+                                <label class="form-check-label">{{ choice.choice_text }}</label>
+                            </div>
+                        {% endfor %}
+                    {% elif question.question_type == 'true_false' %}
+                        <div class="choice">
+                            <input type="radio" 
+                                   name="question_{{ question.id }}" 
+                                   value="true" 
+                                   class="form-check-input"
+                                   required>
+                            <label class="form-check-label">True</label>
+                        </div>
+                        <div class="choice">
+                            <input type="radio" 
+                                   name="question_{{ question.id }}" 
+                                   value="false" 
+                                   class="form-check-input"
+                                   required>
+                            <label class="form-check-label">False</label>
+                        </div>
+                    {% else %}
+                        <div class="mb-3">
+                            <input type="text" 
+                                   name="question_{{ question.id }}" 
+                                   class="form-control"
+                                   required>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Submit Test</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Timer functionality
+    let timeLeft = {{ time_remaining }};
+    const timerElement = document.getElementById('time-remaining');
+    const testForm = document.getElementById('test-form');
+    
+    const timer = setInterval(() => {
+        timeLeft--;
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            testForm.submit();
+        }
+    }, 1000);
+    
+    // Prevent form resubmission
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+</script>
+{% endblock %}

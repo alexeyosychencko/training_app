@@ -1,0 +1,85 @@
+{% extends 'training_app/base.html' %}
+
+{% block title %}Cadet Progress - {{ cadet.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{{ cadet.get_full_name }}'s Progress</h2>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Course Progress -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>Course Progress</h4>
+            </div>
+            <div class="card-body">
+                {% if course_progress %}
+                    {% for progress in course_progress %}
+                        <div class="mb-4">
+                            <h5>{{ progress.course.name }}</h5>
+                            <div class="progress mb-2">
+                                {% with percentage=progress.current_level %}
+                                    <div class="progress-bar" role="progressbar" style="width: {{ percentage }}%">
+                                        Level {{ progress.current_level }}
+                                    </div>
+                                {% endwith %}
+                            </div>
+                            {% if progress.is_completed %}
+                                <span class="badge bg-success">Completed</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No course progress data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Test History -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Test History</h4>
+            </div>
+            <div class="card-body">
+                {% if test_attempts %}
+                    <div class="list-group">
+                        {% for attempt in test_attempts %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ attempt.test.title }}</h5>
+                                    <small>{{ attempt.completed_at|date:"M d, Y" }}</small>
+                                </div>
+                                <p class="mb-1">{{ attempt.test.description|truncatewords:20 }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small>Score: {{ attempt.score }}%</small>
+                                    {% if attempt.is_passed %}
+                                        <span class="badge bg-success">Passed</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No test attempts recorded yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'training_app:instructor_dashboard' %}" class="btn btn-secondary">
+            Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %} 

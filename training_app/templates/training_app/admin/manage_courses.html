@@ -1,0 +1,70 @@
+{% extends 'training_app/base.html' %}
+
+{% block title %}Manage Courses - Training System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Add New Course</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="alert alert-danger">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Add Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>Course List</h4>
+            </div>
+            <div class="card-body">
+                {% if courses %}
+                    <div class="list-group">
+                        {% for course in courses %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">{{ course.name }}</h5>
+                                        <p class="mb-1">{{ course.description|truncatewords:30 }}</p>
+                                        <small>Created: {{ course.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <div>
+                                        {% if course.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                        <a href="{% url 'training_app:manage_tests' course.id %}" 
+                                           class="btn btn-sm btn-primary ms-2">
+                                            Manage Tests
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No courses available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

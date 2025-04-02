@@ -1,0 +1,90 @@
+{% extends 'training_app/base.html' %}
+
+{% block title %}Manage Tests - {{ course.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{{ course.name }} - Test Management</h2>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Test List -->
+    <div class="card">
+        <div class="card-header">
+            <h4>Tests</h4>
+        </div>
+        <div class="card-body">
+            {% if tests %}
+                <div class="list-group">
+                    {% for test in tests %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1">{{ test.title }}</h5>
+                                    <p class="mb-1">{{ test.description|truncatewords:30 }}</p>
+                                    <small>
+                                        Type: {{ test.get_test_type_display }} |
+                                        Duration: {{ test.duration_minutes }} minutes |
+                                        Passing Score: {{ test.passing_score }}%
+                                    </small>
+                                </div>
+                                <div>
+                                    {% if test.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                    <a href="{% url 'training_app:manage_test_questions' course_id=course.id test_id=test.id %}" class="btn btn-outline-primary btn-sm">
+                                        Add Questions
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No tests available for this course.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add Question Form -->
+    <!-- <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Add Question</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="alert alert-danger">
+                                    {{ field.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary">Add Question</button>
+                </form>
+            </div>
+        </div>
+    </div> -->
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'training_app:manage_courses' %}" class="btn btn-secondary">
+            Back to Courses
+        </a>
+        <a href="{% url 'training_app:create_test' course_id=course.id%}" class="btn btn-primary ms-2">
+            Create Test
+        </a>
+    </div>
+</div>
+{% endblock %} 

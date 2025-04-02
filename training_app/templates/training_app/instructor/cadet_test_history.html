@@ -1,0 +1,63 @@
+{% extends 'training_app/base.html' %}
+
+{% block title %}Test History - {{ cadet.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>{{ cadet.get_full_name }}'s Test History</h2>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        {% if attempts_by_course %}
+            {% for course, attempts in attempts_by_course.items %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h4>{{ course.name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for attempt in attempts %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div>
+                                            <h5 class="mb-1">{{ attempt.test.title }}</h5>
+                                            <p class="mb-1">{{ attempt.test.description|truncatewords:30 }}</p>
+                                            <small>
+                                                Type: {{ attempt.test.get_test_type_display }} |
+                                                Completed: {{ attempt.completed_at|date:"M d, Y H:i" }}
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            <h4 class="mb-1">{{ attempt.score }}%</h4>
+                                            {% if attempt.is_passed %}
+                                                <span class="badge bg-success">Passed</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                No test attempts recorded yet.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <a href="{% url 'training_app:view_cadet_progress' cadet.id %}" class="btn btn-secondary">
+            Back to Progress
+        </a>
+    </div>
+</div>
+{% endblock %} 

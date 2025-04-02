@@ -1,0 +1,235 @@
+{% extends 'training_app/base.html' %}
+{% load training_filters %}
+
+{% block title %}Training System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if user.is_authenticated %}
+        {% if user.user_type == 'admin' %}
+            <!-- Admin Dashboard -->
+            <div class="row">
+                <div class="col-12">
+                    <h2>Admin Dashboard</h2>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <!-- Statistics Cards -->
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Cadets</h5>
+                            <p class="card-text display-4">{{ stats.total_cadets }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Instructors</h5>
+                            <p class="card-text display-4">{{ stats.total_instructors }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Courses</h5>
+                            <p class="card-text display-4">{{ stats.total_courses }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Tests</h5>
+                            <p class="card-text display-4">{{ stats.total_tests }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Test Attempts -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Quick Actions</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <a href="{% url 'training_app:manage_courses' %}" class="list-group-item list-group-item-action">
+                                    Manage Courses
+                                </a>
+                                <a href="{% url 'training_app:manage_users' %}" class="list-group-item list-group-item-action">
+                                    Manage Users
+                                </a>
+                                <a href="{% url 'training_app:assign_instructor' %}" class="list-group-item list-group-item-action">
+                                    Assign Instructors
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Recent Test Attempts</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_attempts %}
+                                <div class="list-group">
+                                    {% for attempt in recent_attempts %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <div>
+                                                    <h5 class="mb-1">{{ attempt.cadet.get_full_name }}</h5>
+                                                    <p class="mb-1">{{ attempt.test.title }}</p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <span class="badge {% if attempt.is_passed %}bg-success{% else %}bg-danger{% endif %}">
+                                                        {{ attempt.score }}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No recent test attempts.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% elif user.user_type == 'instructor' %}
+            <!-- Instructor Dashboard -->
+            <div class="row">
+                <div class="col-12">
+                    <h2>Instructor Dashboard</h2>
+                </div>
+            </div>
+
+            <!-- Assigned Cadets -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Your Assigned Cadets</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if assigned_cadets %}
+                                <div class="list-group">
+                                    {% for assignment in assigned_cadets %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <div>
+                                                    <h5 class="mb-1">{{ assignment.cadet.get_full_name }}</h5>
+                                                    <p class="mb-1">{{ assignment.course.name }}</p>
+                                                </div>
+                                                <a href="{% url 'training_app:view_cadet_progress' assignment.cadet.id %}" 
+                                                   class="btn btn-primary">
+                                                    View Progress
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No cadets assigned yet.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- Cadet Dashboard -->
+            <div class="row">
+                <div class="col-12">
+                    <h2>Cadet Dashboard</h2>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <!-- Course Progress -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Your Course Progress</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if course_progress %}
+                                {% for progress in course_progress %}
+                                    <div class="mb-4">
+                                        <h5>{{ progress.course.name }}</h5>
+                                        <div class="progress mb-2">
+                                            {% with percentage=progress.current_level %}
+                                                <div class="progress-bar" role="progressbar" style="width: {{ percentage }}%">
+                                                    Level {{ progress.current_level }}
+                                                </div>
+                                            {% endwith %}
+                                        </div>
+                                        {% if progress.is_completed %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p>No course progress data available.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available Tests -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Available Tests</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if available_tests %}
+                                <div class="list-group">
+                                    {% for unlock in available_tests %}
+                                        <div class="list-group-item">
+                                            <div class="d-flex w-100 justify-content-between">
+                                                <div>
+                                                    <h5 class="mb-1">{{ unlock.test.title }}</h5>
+                                                    <p class="mb-1">{{ unlock.test.get_test_type_display }}</p>
+                                                </div>
+                                                <a href="{% url 'training_app:take_test' unlock.test.id %}" 
+                                                   class="btn btn-primary">
+                                                    Take Test
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>No tests available at the moment.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+
+    {% else %}
+        <!-- Welcome Page for Non-Authenticated Users -->
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1>Welcome to the Training System</h1>
+                <p class="lead">Please log in to access your dashboard.</p>
+                <div class="mt-4">
+                    <a href="{% url 'training_app:login' %}" class="btn btn-primary me-2">Login</a>
+                    <a href="{% url 'training_app:register' %}" class="btn btn-outline-primary">Register</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
