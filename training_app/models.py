@@ -44,7 +44,7 @@ class User(AbstractUser):
     username = None
     
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='cadet')
-    organization = models.ForeignKey('Organization', on_delete=models.SET_NULL, null=True, blank=True)
+    organization = models.ForeignKey('Organization', on_delete=models.CASCADE, null=True, blank=True, related_name='users')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
 
     # Resolve reverse accessor clashes
@@ -77,53 +77,6 @@ class User(AbstractUser):
     
     def get_short_name(self):
         return self.first_name
-
-
-# class User(AbstractUser):
-#     USER_TYPE_CHOICES = (
-#         ('cadet', 'Cadet'),
-#         ('instructor', 'Instructor'),
-#         ('admin', 'Admin'),
-#     )
-    
-#     # Override the default fields to make them required
-#     first_name = models.CharField(max_length=150, blank=False)
-#     last_name = models.CharField(max_length=150, blank=False)
-#     email = models.EmailField(blank=False, unique=True)
-#     username = models.EmailField(blank=False, unique=True)
-    
-#     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
-#     organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True, blank=True)
-#     phone_number = models.CharField(max_length=15, blank=True)
-#     # profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
-    
-#     # Add related_name to resolve reverse accessor clashes
-#     groups = models.ManyToManyField(
-#         'auth.Group',
-#         related_name='training_user_set',
-#         blank=True,
-#         help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-#         verbose_name='groups',
-#     )
-#     user_permissions = models.ManyToManyField(
-#         'auth.Permission',
-#         related_name='training_user_set',
-#         blank=True,
-#         help_text='Specific permissions for this user.',
-#         verbose_name='user permissions',
-#     )
-    
-#     # Use email as the username field
-#     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
-    
-#     def __str__(self):
-#         return f"{self.get_full_name()} ({self.get_user_type_display()})"
-    
-#     def get_full_name(self):
-#         return f"{self.first_name} {self.last_name}".strip()
-    
-#     def get_short_name(self):
-#         return self.first_name
 
 class Course(models.Model):
     name = models.CharField(max_length=200)

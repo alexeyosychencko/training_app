@@ -121,8 +121,8 @@ ChoiceFormSet = inlineformset_factory(
     Question,
     Choice,
     form=ChoiceForm,
-    extra=4,
+    extra=5,
     can_delete=True,
-    min_num=2,
-    validate_min=True
+    min_num=1,
+    validate_min=False
 ) 

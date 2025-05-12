@@ -49,13 +49,16 @@ class IndexView(generic.TemplateView):
                 
             elif user_type == 'cadet':
                 # Cadet dashboard data
-                context['course_progress'] = CourseProgress.objects.filter(
-                    cadet=self.request.user
-                ).select_related('course')[:5]
-                context['available_tests'] = TestUnlock.objects.filter(
-                    cadet=self.request.user,
-                    is_unlocked=True
-                ).select_related('test')[:5]
+                # get all tests
+                tests = Test.objects.all()
+                context['available_tests'] = tests
+                # context['course_progress'] = CourseProgress.objects.filter(
+                #     cadet=self.request.user
+                # ).select_related('course')[:5]
+                # context['available_tests'] = TestUnlock.objects.filter(
+                #     # cadet=self.request.user,
+                #     # is_unlocked=True
+                # ).select_related('test')[:5]
         
         return context
 
@@ -101,7 +104,7 @@ def register(request):
                 user.save()
                 login(request, user)
                 messages.success(request, 'Registration successful! Welcome to your dashboard.')
-                return redirect('training_app:cadet_dashboard')
+                return redirect('training_app:index')
             except Exception as e:
                 messages.error(request, f'An error occurred during registration: {str(e)}')
                 return render(request, 'training_app/register.html', {'form': form})
@@ -158,15 +161,17 @@ def take_test(request, test_id):
     
     test = get_object_or_404(Test, id=test_id)
     # Check if test is unlocked
-    if not TestUnlock.objects.filter(cadet=request.user, test=test, is_unlocked=True).exists():
-        messages.error(request, "This test is not available yet.")
-        return redirect('cadet_dashboard')
+    # TODO: check if test is unlocked
+    # if not TestUnlock.objects.filter(cadet=request.user, test=test, is_unlocked=True).exists():
+    #     messages.error(request, "This test is not available yet.")
+    #     return redirect('training_app:index')
     
+    # TODO: check if user has attempts remaining
     # Check if user has attempts remaining
-    attempts = TestAttempt.objects.filter(cadet=request.user, test=test).count()
-    if attempts >= test.max_attempts:
-        messages.error(request, "You have no attempts remaining for this test.")
-        return redirect('cadet_dashboard')
+    # attempts = TestAttempt.objects.filter(cadet=request.user, test=test).count()
+    # if attempts >= test.max_attempts:
+    #     messages.error(request, "You have no attempts remaining for this test.")
+    #     return redirect('training_app:index')
     
     if request.method == 'POST':
         form = TestSubmissionForm(request.POST, test=test)
@@ -192,7 +197,7 @@ def take_test(request, test_id):
                     TestUnlock.objects.create(cadet=request.user, test=next_test)
             
             messages.success(request, f"Test completed! Score: {score}%")
-            return redirect('cadet_dashboard')
+            return redirect('training_app:index')
     else:
         form = TestSubmissionForm(test=test)
     
@@ -424,35 +429,35 @@ def manage_users(request):
         'instructors': instructors
     })
 
-@login_required
-@user_passes_test(lambda u: u.user_type == 'admin')
-def assign_instructor(request):
-    if request.method == 'POST':
-        instructor_id = request.POST.get('instructor')
-        cadet_id = request.POST.get('cadet')
-        course_id = request.POST.get('course')
+# @login_required
+# @user_passes_test(lambda u: u.user_type == 'admin')
+# def assign_instructor(request):
+#     if request.method == 'POST':
+#         instructor_id = request.POST.get('instructor')
+#         cadet_id = request.POST.get('cadet')
+#         course_id = request.POST.get('course')
         
-        instructor = get_object_or_404(User, id=instructor_id, user_type='instructor')
-        cadet = get_object_or_404(User, id=cadet_id, user_type='cadet')
-        course = get_object_or_404(Course, id=course_id)
+#         instructor = get_object_or_404(User, id=instructor_id, user_type='instructor')
+#         cadet = get_object_or_404(User, id=cadet_id, user_type='cadet')
+#         course = get_object_or_404(Course, id=course_id)
         
-        InstructorAssignment.objects.create(
-            instructor=instructor,
-            cadet=cadet,
-            course=course
-        )
-        messages.success(request, 'Instructor assigned successfully.')
-        return redirect('training_app:manage_users')
+#         InstructorAssignment.objects.create(
+#             instructor=instructor,
+#             cadet=cadet,
+#             course=course
+#         )
+#         messages.success(request, 'Instructor assigned successfully.')
+#         return redirect('training_app:manage_users')
     
-    instructors = User.objects.filter(user_type='instructor')
-    cadets = User.objects.filter(user_type='cadet')
-    courses = Course.objects.filter(is_active=True)
+#     instructors = User.objects.filter(user_type='instructor')
+#     cadets = User.objects.filter(user_type='cadet')
+#     courses = Course.objects.filter(is_active=True)
     
-    return render(request, 'training_app/admin/assign_instructor.html', {
-        'instructors': instructors,
-        'cadets': cadets,
-        'courses': courses
-    })
+#     return render(request, 'training_app/admin/assign_instructor.html', {
+#         'instructors': instructors,
+#         'cadets': cadets,
+#         'courses': courses
+#     })
 
 # API Views for AJAX requests
 @login_required
@@ -500,15 +505,18 @@ def manage_test_questions(request, course_id, test_id):
             question.save()
             
             # Handle choices if it's a multiple choice or true/false question
-            print(question.question_type)
             if question.question_type in ['multiple_choice', 'true_false']:
                 choice_formset = ChoiceFormSet(request.POST, instance=question)
-                print(choice_formset.is_valid())
+                print("choice_formset", choice_formset.data)
+                print("choice_formset is_valid", choice_formset.is_valid())
                 if choice_formset.is_valid():
                     choice_formset.save()
                     messages.success(request, 'Question and choices added successfully.')
                 else:
-                    messages.error(request, 'Error saving choices.')
+                    # If formset is invalid, delete the question and show error
+                    question.delete()
+                    messages.error(request, 'Error saving choices. Please ensure all required fields are filled.')
+                    return redirect('training_app:manage_test_questions', course_id=course_id, test_id=test_id)
             else:
                 messages.success(request, 'Question added successfully.')
             
@@ -517,6 +525,7 @@ def manage_test_questions(request, course_id, test_id):
             messages.error(request, 'Error adding question.')
     else:
         form = QuestionForm()
+        choice_formset = ChoiceFormSet()
     
     # Get all questions for this test
     questions = Question.objects.filter(test=test).prefetch_related('choices')
@@ -525,6 +534,7 @@ def manage_test_questions(request, course_id, test_id):
         'course': course,
         'test': test,
         'form': form,
+        'choice_formset': choice_formset,
         'questions': questions,
     }
     return render(request, 'training_app/admin/manage_test_questions.html', context)

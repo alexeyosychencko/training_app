@@ -65,9 +65,6 @@
                                 <a href="{% url 'training_app:manage_users' %}" class="list-group-item list-group-item-action">
                                     Manage Users
                                 </a>
-                                <a href="{% url 'training_app:assign_instructor' %}" class="list-group-item list-group-item-action">
-                                    Assign Instructors
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -193,14 +190,14 @@
                         <div class="card-body">
                             {% if available_tests %}
                                 <div class="list-group">
-                                    {% for unlock in available_tests %}
+                                    {% for test in available_tests %}
                                         <div class="list-group-item">
                                             <div class="d-flex w-100 justify-content-between">
                                                 <div>
-                                                    <h5 class="mb-1">{{ unlock.test.title }}</h5>
-                                                    <p class="mb-1">{{ unlock.test.get_test_type_display }}</p>
+                                                    <h5 class="mb-1">{{ test.title }}</h5>
+                                                    <p class="mb-1">{{ test.get_test_type_display }}</p>
                                                 </div>
-                                                <a href="{% url 'training_app:take_test' unlock.test.id %}" 
+                                                <a href="{% url 'training_app:take_test' test.id %}" 
                                                    class="btn btn-primary">
                                                     Take Test
                                                 </a>

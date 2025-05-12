@@ -34,7 +34,7 @@ urlpatterns = [
     path('administration/<int:course_id>/tests/<int:test_id>/questions/<int:question_id>/delete/', views.delete_question, name='delete_question'),
     path('administration/users/', views.manage_users, name='manage_users'),
     path('administration/users/<int:user_id>/progress/', views.view_user_progress, name='view_user_progress'),
-    path('administration/assign-instructor/', views.assign_instructor, name='assign_instructor'),
+    # path('administration/assign-instructor/', views.assign_instructor, name='assign_instructor'),
     
     # API URLs
     path('api/test/<int:test_id>/questions/', views.get_test_questions, name='get_test_questions'),

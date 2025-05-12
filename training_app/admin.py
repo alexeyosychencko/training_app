@@ -28,6 +28,9 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
 
+    def log_deletion(self, request, object, object_repr):
+        pass  # Override to skip logging
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = ('name', 'referral_code', 'created_at')
@@ -109,3 +112,30 @@ class InstructorAssignmentAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('assigned_at',)
     ordering = ('-assigned_at',)
+
+# class NoLogUserAdmin(UserAdmin):
+#     model = User
+#     ordering = ['email']
+#     list_display = ['email', 'is_staff', 'is_active']
+    
+#     fieldsets = (
+#         (None, {'fields': ('email', 'password')}),
+#         ('Permissions', {'fields': ('is_staff', 'is_active', 'groups', 'user_permissions')}),
+#         ('Important dates', {'fields': ('last_login',)}),
+#     )
+    
+#     add_fieldsets = (
+#         (None, {
+#             'classes': ('wide',),
+#             'fields': ('email', 'password1', 'password2', 'is_staff', 'is_active')}
+#         ),
+#     )
+
+#     def log_deletion(self, request, object, object_repr):
+#         pass  # Override to skip logging
+
+# Unregister the default User admin
+admin.site.unregister(User)
+
+# Register your custom User admin
+admin.site.register(User, CustomUserAdmin)
